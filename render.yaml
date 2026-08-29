@@ -13,5 +13,7 @@ services:
         value: false
       - key: DATA_DIR
         value: /app/data
+      - key: PYTHON_VERSION
+        value: 3.11.8
     healthCheckPath: /health
     autoDeploy: true
